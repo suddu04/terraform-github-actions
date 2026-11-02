@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+
   push:
     branches:
       - main
@@ -20,6 +21,9 @@ jobs:
     name: Terraform Validation
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -27,13 +31,13 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: Check Terraform Formatting
+      - name: Terraform Format
         run: terraform fmt -check -recursive
 
-      - name: Initialize Terraform
+      - name: Terraform Init
         run: terraform init -backend=false
 
-      - name: Validate Terraform
+      - name: Terraform Validate
         run: terraform validate
 
   deploy:
@@ -66,11 +70,11 @@ jobs:
       - name: Verify AWS Identity
         run: aws sts get-caller-identity
 
-      - name: Initialize Terraform
+      - name: Terraform Init
         run: terraform init -input=false
 
-      - name: Generate Terraform Plan
+      - name: Terraform Plan
         run: terraform plan -input=false -out=tfplan
 
-      - name: Apply Terraform Changes
+      - name: Terraform Apply
         run: terraform apply -input=false -auto-approve tfplan

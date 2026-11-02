@@ -33,7 +33,7 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.8
+          terraform_version: 1.10.5
 
       # 3. Debug GitHub OIDC Claims
       - name: Debug GitHub OIDC Claims
@@ -71,7 +71,7 @@ jobs:
 
       # 7. Terraform Init
       - name: Terraform Init
-        run: terraform init
+        run: terraform init 
 
       # 8. Terraform Validate
       - name: Terraform Validate

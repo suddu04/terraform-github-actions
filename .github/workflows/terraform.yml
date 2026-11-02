@@ -6,9 +6,7 @@ on:
     branches:
       - main
 
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -16,43 +14,25 @@ permissions:
 
 jobs:
   terraform:
-    name: Terraform AWS Deployment
+    name: Terraform Deployment
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        shell: bash
-
     steps:
-
-      # 1. Checkout Repository
+      # Step 1: Download GitHub repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Terraform
+      # Step 2: Install Terraform
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.10.5
 
-      # 3. Debug GitHub OIDC Claims
-      - name: Debug GitHub OIDC Claims
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const token = await core.getIDToken('sts.amazonaws.com');
+      # Step 3: Verify Terraform version
+      - name: Check Terraform Version
+        run: terraform version
 
-            const payload = JSON.parse(
-              Buffer.from(token.split('.')[1], 'base64url').toString()
-            );
-
-            console.log("OIDC ISSUER:", payload.iss);
-            console.log("OIDC AUDIENCE:", payload.aud);
-            console.log("OIDC SUBJECT:", payload.sub);
-            console.log("REPOSITORY:", payload.repository);
-            console.log("ENVIRONMENT:", payload.environment || "Not set");
-
-      # 4. Configure AWS Credentials
+      # Step 4: Configure AWS using GitHub OIDC
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -60,23 +40,22 @@ jobs:
           aws-region: ap-south-1
           role-session-name: GitHubActionsTerraform
 
-      # 5. Verify AWS Authentication
+      # Step 5: Verify AWS authentication
       - name: Verify AWS Identity
-        run: |
-          aws sts get-caller-identity
+        run: aws sts get-caller-identity
 
-      # 6. Terraform Format
+      # Step 6: Check Terraform formatting
       - name: Terraform Format
         run: terraform fmt -check -recursive
 
-      # 7. Terraform Init
+      # Step 7: Initialize Terraform
       - name: Terraform Init
-        run: terraform init 
+        run: terraform init -input=false
 
-      # 8. Terraform Validate
+      # Step 8: Validate Terraform configuration
       - name: Terraform Validate
         run: terraform validate
 
-      # 9. Terraform Plan
+      # Step 9: Generate Terraform execution plan
       - name: Terraform Plan
-        run: terraform plan -no-color
+        run: terraform plan -input=false -no-color
